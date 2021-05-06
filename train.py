@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 30 15:41:18 2021
-
-@author: LG
-
-KCC2021 LSTM Model Training
-
-2021.04.15
+    choi hey-min
+    
+    train.py
+    
+    2021.05.06
 
 """
 
@@ -39,17 +37,14 @@ parser.add_argument('--IT', type=int, default=300, dest='IT')
 
 args = parser.parse_args()
 
+# Hyper Parameter
 
 EST = args.EST
 LAT = args.LAT
 LON = args.LON
-
-# EST = 2
-# LAT = 0
-# LON = 5
-
 LR = args.LR
 IT = args.IT
+
 VER = str(LR)+'_'+str(IT)
 NAME_PICKLE = '2007to2019.pickle'
 
@@ -69,8 +64,7 @@ def createFolder(dir):
     
 
 def read_pickle():
-    
-    # get pickle
+
     with open(NAME_PICKLE, 'rb') as f:
         nc_sst = pickle.load(f)
         nc_lat = pickle.load(f)
@@ -78,6 +72,7 @@ def read_pickle():
         nc_time = pickle.load(f)
     
     return nc_sst, nc_lat, nc_lon, nc_time
+
 
 def get_data(lat, lon):
     
@@ -87,11 +82,13 @@ def get_data(lat, lon):
     
     for i in range(total_size):
         new_sst = np.round(nc_sst[i, lat, lon] - 273.15, 4)
-        # new_date= str(nc_time[i])[:10]
+
         df_data = {'sst':new_sst}
         df = df.append(pd.Series(df_data, index=df.columns), ignore_index=True)
     
     return df
+
+
 
 now = time.localtime()
 
@@ -394,7 +391,7 @@ print(rslt_df.tail(4))
 est_sst = rslt_output[0][29]
     
     
-excel = 'EST'+str(EST)+'.xlsx'
+excel = 'EST'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.xlsx'
 if os.path.isfile(excel):
     wb = load_workbook(excel)
 else:
@@ -402,40 +399,18 @@ else:
 ws = wb.active
 ws.cell(LAT+1, LON+1, est_sst[0])
 wb.save(excel)
-    
-
-
-# if __name__=='__main__':
-    
-#     print('\n-------------------MODEL TEST-------------------')
-#     ds_test = wide_window.test
-#     performance['LSTM'] = lstm_model.evaluate(ds_test, verbose=2)
-
-#     list_test = list(ds_test.as_numpy_iterator())
-
-#     rslt_input = list_test[0][0]
-#     rslt_label = list_test[0][1]
 
 
 
-#     rslt_input, rslt_output = wide_window.plot(lstm_model)
 
-#     rslt_df = pd.DataFrame({'index':test_df.index[:30],
-#                             'input': rslt_input.reshape(30),
-#                             'label' : rslt_label.reshape(30),
-#                             'predict':rslt_output.reshape(30)})
 
-#     print(rslt_df.tail(4))
-    
-#     est_sst = rslt_output[0][29]
-    
-    
-#     excel = 'EST'+str(EST)+'.xlsx'
-#     if os.path.isfile(excel):
-#         wb = load_workbook(excel)
-#     else:
-#         wb = Workbook()
-#     ws = wb.active
-#     ws.cell(LAT+1, LON+1, est_sst[0])
-#     wb.save(excel)
-    
+
+
+
+
+
+
+
+
+
+
