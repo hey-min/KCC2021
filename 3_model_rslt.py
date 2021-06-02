@@ -26,7 +26,7 @@ PICKLE = '2007to2019.pickle'
 # ===== Hyper parameter =====
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=1, dest='EST')
+parser.add_argument('--EST', type=int, default=7, dest='EST')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
 args = parser.parse_args()
@@ -239,7 +239,7 @@ def accuracy():
 
 
 
-# ===== READ PICKLE =====
+# ===== GET MODEL ACCURACY =====
 df_rslt = accuracy()
 
 r2 = df_rslt['R2'][0]
@@ -248,14 +248,147 @@ mape = df_rslt['MAPE'][0]
 f1_score = round(df_rslt['f1_score'][0], 3)
 
 
-# ===== READ PICKLE =====
-drawPlot(ex_est)
+# ===== DRAW EST MAP PLOT =====
+# drawPlot(ex_est)
+    
+
+# ===== DRAW EST AND REAL DIFF PLOT =====    
+
+def plot_diff():
+    
+    df_real = pd.read_excel(ex_real)
+    df_est = pd.read_excel(ex_est)
+    df = df_real - df_est
+    
+    x = df.values.flatten()
+    x = x[~np.isnan(x)]
+    
+    _min = abs(min(x))
+    _max = abs(max(x))
+    
+    _abs = 3
+    
+    plt.figure(figsize=(20, 16))
+    ax = plt.gca()
+        
+    plt.rc('font', size=25)
+        
+    title = 'SST Difference Map for 10 Aug 2019 12:00:00'
+    plt.title(title, weight='bold', loc='left', pad=20)
+    
+    plt.title(str(ex_est), loc='right', pad=20)
+    map = Basemap(projection='merc', resolution='h', 
+                  urcrnrlat=np.nanmax(nc_lat)+0.125, llcrnrlat=np.nanmin(nc_lat)-0.125,
+                  urcrnrlon=np.nanmax(nc_lon)+0.125, llcrnrlon=np.nanmin(nc_lon)-0.125)
+
+    map.drawcoastlines(linewidth=0.8)
+    
+    map.fillcontinents(color='lightgrey')
+    
+    parallels = np.arange(np.nanmin(nc_lat)+1, np.nanmax(nc_lat), 2)
+    
+    map.drawparallels(parallels, labels=[1,0,0,0], linewidth=0.8,color='white')
+    
+    merdians = np.arange(np.nanmin(nc_lon)+3, np.nanmax(nc_lon), 3)
+    map.drawmeridians(merdians, labels=[0,0,0,1], linewidth=0.8,color='white')
+    
+    map.drawmapboundary()
+        
+    lons, lats = np.meshgrid(nc_lon, nc_lat)
+    x,y = map(lons, lats)
+        
+    cmap = plt.get_cmap('jet')
+    img = map.pcolormesh(x, y, df, cmap=cmap, shading='gouraud')
+    img.set_clim(vmin=-_abs, vmax=_abs)
+        
+    levels = np.arange(-_abs, _abs+1, 0.5)
+    
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='3%', pad=0.2)
+        
+    cbar = plt.colorbar(img, ticks=levels, cax=cax, extend='both')
+    cbar.set_label(label='SST(℃)', labelpad=20)
+        
+        
+    #### SAVE IMAGE ####
+    img_file = 'diff_EST'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.png'
+    plt.savefig(img_file, bbox_inches='tight')
+    print('File Save: {}' .format(img_file))
+    
+    plt.show()
+    
+
+    return df
+
+# df_diff = plot_diff()    
     
     
+def plot_diff_abs():
+    
+    df_real = pd.read_excel(ex_real)
+    df_est = pd.read_excel(ex_est)
+    df = df_real - df_est
+    
+    df = df.abs()
+    
+    x = df.values.flatten()
+    # remove nan values from array
+    x = x[~np.isnan(x)]
     
     
+    plt.figure(figsize=(20, 16))
+    ax = plt.gca()
+        
+    plt.rc('font', size=25)
+        
+    title = 'SST Difference Map for 10 Aug 2019 12:00:00'
+    plt.title(title, weight='bold', loc='left', pad=20)
     
+    plt.title(str(ex_est), loc='right', pad=20)
+    map = Basemap(projection='merc', resolution='h', 
+                  urcrnrlat=np.nanmax(nc_lat)+0.125, llcrnrlat=np.nanmin(nc_lat)-0.125,
+                  urcrnrlon=np.nanmax(nc_lon)+0.125, llcrnrlon=np.nanmin(nc_lon)-0.125)
+
+    map.drawcoastlines(linewidth=0.8)
     
+    map.fillcontinents(color='lightgrey')
+    
+    parallels = np.arange(np.nanmin(nc_lat)+1, np.nanmax(nc_lat), 2)
+    
+    map.drawparallels(parallels, labels=[1,0,0,0], linewidth=0.8,color='white')
+    
+    merdians = np.arange(np.nanmin(nc_lon)+3, np.nanmax(nc_lon), 3)
+    map.drawmeridians(merdians, labels=[0,0,0,1], linewidth=0.8,color='white')
+    
+    map.drawmapboundary()
+        
+    lons, lats = np.meshgrid(nc_lon, nc_lat)
+    x,y = map(lons, lats)
+        
+    cmap = plt.get_cmap('jet')
+    img = map.pcolormesh(x, y, df, cmap=cmap, shading='gouraud')
+    img.set_clim(vmin=0, vmax=3)
+        
+    levels = np.arange(0, 4, 0.5)
+    
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='3%', pad=0.2)
+        
+    cbar = plt.colorbar(img, ticks=levels, cax=cax, extend='both')
+    cbar.set_label(label='SST(℃)', labelpad=20)
+        
+        
+    #### SAVE IMAGE ####
+    img_file = 'diff_abs_EST'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.png'
+    plt.savefig(img_file, bbox_inches='tight')
+    print('File Save: {}' .format(img_file))
+    
+    plt.show()
+    
+
+    return df
+
+df_diff_abs = plot_diff_abs()        
     
     
     
