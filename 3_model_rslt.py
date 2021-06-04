@@ -26,7 +26,7 @@ PICKLE = '2007to2019.pickle'
 # ===== Hyper parameter =====
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=5, dest='EST')
+parser.add_argument('--EST', type=int, default=7, dest='EST')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
 args = parser.parse_args()
@@ -261,8 +261,8 @@ def plot_diff():
         
     plt.rc('font', size=25)
         
-    title = 'SST Difference Map for 10 Aug 2019 12:00:00'
-    plt.title(title, weight='bold', loc='left', pad=20)
+    title = 'Error Map for 10 Aug 2019 12:00'
+    plt.title(title, fontdict={'fontsize':30}, loc='left', pad=20)
     
     plt.title(str(ex_est), loc='right', pad=20)
     map = Basemap(projection='merc', resolution='h', 
@@ -329,8 +329,8 @@ def plot_diff_abs():
         
     plt.rc('font', size=25)
         
-    title = 'SST Difference Map for 10 Aug 2019 12:00:00'
-    plt.title(title, weight='bold', loc='left', pad=20)
+    title = 'Positive Error Map for 10 Aug 2019 12:00'
+    plt.title(title, fontdict={'fontsize':30}, loc='left', pad=20)
     
     plt.title(str(ex_est), loc='right', pad=20)
     map = Basemap(projection='merc', resolution='h', 
@@ -391,13 +391,13 @@ print(df_rslt)
 
 
 # ===== DRAW EST MAP PLOT =====
-# drawPlot(ex_est)
+drawPlot(ex_est)
 
 # ===== DRAW DIFF MAP PLOT =====
-# df_diff = plot_diff() 
+df_diff = plot_diff() 
 
 # ===== DRAW DIFF ABS MAP PLOT =====
-# df_diff_abs = plot_diff_abs()        
+df_diff_abs = plot_diff_abs()        
     
     
     
