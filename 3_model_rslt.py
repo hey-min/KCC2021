@@ -26,7 +26,7 @@ PICKLE = '2007to2019.pickle'
 # ===== Hyper parameter =====
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=7, dest='EST')
+parser.add_argument('--EST', type=int, default=5, dest='EST')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
 args = parser.parse_args()
@@ -169,7 +169,9 @@ def accuracy():
         x = np.array(y_true)
         y = np.array(y_pred)
    
-        R2 = r2_score(x, y)
+        res = x - y
+        tot = x - y.mean()   
+        R2 = 1 - np.sum(res**2) / np.sum(tot**2)
         
         RMSE = np.sqrt(((y-x) ** 2).mean())
     
@@ -178,7 +180,7 @@ def accuracy():
     columns = ['EST', 'R2', 'RMSE', 'MAPE']
 
     data_ac = {'EST':[EST],
-        'R2':[round(R2,2)],
+        'R2':[round(R2,4)],
         'RMSE':[round(RMSE,2)],
         'MAPE':[round(MAPE,2)]}
     
@@ -236,20 +238,6 @@ def accuracy():
     
     return df_rslt
 
-
-
-
-# ===== GET MODEL ACCURACY =====
-df_rslt = accuracy()
-
-r2 = df_rslt['R2'][0]
-rmse = df_rslt['RMSE'][0]
-mape = df_rslt['MAPE'][0]
-f1_score = round(df_rslt['f1_score'][0], 3)
-
-
-# ===== DRAW EST MAP PLOT =====
-# drawPlot(ex_est)
     
 
 # ===== DRAW EST AND REAL DIFF PLOT =====    
@@ -320,7 +308,7 @@ def plot_diff():
 
     return df
 
-# df_diff = plot_diff()    
+   
     
     
 def plot_diff_abs():
@@ -388,7 +376,28 @@ def plot_diff_abs():
 
     return df
 
-df_diff_abs = plot_diff_abs()        
+
+
+
+# ===== GET MODEL ACCURACY =====
+df_rslt = accuracy()
+
+r2 = df_rslt['R2'][0]
+rmse = df_rslt['RMSE'][0]
+mape = df_rslt['MAPE'][0]
+f1_score = round(df_rslt['f1_score'][0], 3)
+
+print(df_rslt)
+
+
+# ===== DRAW EST MAP PLOT =====
+# drawPlot(ex_est)
+
+# ===== DRAW DIFF MAP PLOT =====
+# df_diff = plot_diff() 
+
+# ===== DRAW DIFF ABS MAP PLOT =====
+# df_diff_abs = plot_diff_abs()        
     
     
     
