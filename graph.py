@@ -72,3 +72,25 @@ plt.title('Comparison of F1 Scores')
     
 plt.show()
 
+# ============= TPR FPR =================
+
+tpr = [0.90441, 0.81281, 0.7284, 0.44802, 0.31204]
+fpr = [0.12308, 0.11322, 0.10598, 0.08069, 0.06787]
+
+plt.figure(figsize=(5, 5))
+plt.rc('font', size=10)
+
+for i in range(len(tpr)):
+    if i==0:
+        plt.text(fpr[i], tpr[i], str(days[i])+'day')
+    else:
+        plt.text(fpr[i], tpr[i], str(days[i])+'days')
+    
+plt.scatter(fpr, tpr, marker='s')
+
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+plt.xlabel('FPR')
+plt.ylabel('TPR')
+    
+plt.show()
