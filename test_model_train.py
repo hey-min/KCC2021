@@ -19,7 +19,7 @@ parser.add_argument('--EST', type=int, default=1, dest='EST')
 parser.add_argument('--LAT', type=int, default=0, dest='LAT')
 parser.add_argument('--LON', type=int, default=6, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
-parser.add_argument('--IT', type=int, default=300, dest='IT')
+parser.add_argument('--IT', type=int, default=10, dest='IT')
 # parser.add_argument('--BATCH', type=int, default=14, dest='BATCH')
 
 args = parser.parse_args()
@@ -41,7 +41,7 @@ def createFolder(dir):
         print(e)
         
         
-model_path = 'model/'+VER
+model_path = 'model_test/'+VER
 createFolder(model_path)
 model_name = '['+str(LAT)+']['+str(LON)+']'
 
@@ -105,7 +105,7 @@ test_df = df[START:LABEL+1]
 
 
 
-'''
+
 
 
 
@@ -342,4 +342,3 @@ new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
 
 
 
-'''

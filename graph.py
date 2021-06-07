@@ -4,10 +4,48 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import pandas as pd
 
-
+def checkFile(file_list):
+    
+    for file in file_list:
+        try:
+            if os.path.isfile(file):
+                print('Read : {}' .format(file))
+    
+        except IOError:
+            print(file + ' is not exist')
 
 days = np.arange(1,6,1)
+
+# Time Series Graph
+sst_list = []
+ex_list = []
+for i in range(1,6):
+    ex_est = 'excel/EST'+str(i)+'_'+str(0.001)+'_'+str(500)+'.xlsx'
+    ex_list.append(ex_est)
+
+checkFile(ex_list)
+
+df_real = pd.read_excel('excel/real.xlsx')
+LAT, LON = 13, 38
+print(df_real.loc[LAT][LON])
+for i in range(len(ex_list)):
+    
+    file = ex_list[i]
+    df = pd.read_excel(file)
+    data = df.loc[LAT][LON]
+    
+    print(file+': '+str(data))
+    sst_list.append(data)
+     
+    
+    
+    
+    
+
+'''
 
 # 1. r2, rmse, mape
 # ============= R2 =================
@@ -56,7 +94,7 @@ plt.title('Comparison of MAPE')
 plt.show()
 
 
-# 2. f1 score
+# 2. F1 Score
 # ============= F1 Score =================
 f1_score = [0.808, 0.767, 0.722, 0.537, 0.417]
 
@@ -94,3 +132,5 @@ plt.xlabel('FPR')
 plt.ylabel('TPR')
     
 plt.show()
+
+'''

@@ -26,7 +26,7 @@ PICKLE = '2007to2019.pickle'
 # ===== Hyper parameter =====
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=7, dest='EST')
+parser.add_argument('--EST', type=int, default=1, dest='EST')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
 args = parser.parse_args()
@@ -368,7 +368,7 @@ def plot_diff_abs():
         
     #### SAVE IMAGE ####
     img_file = 'diff_abs_EST'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.png'
-    plt.savefig(img_file, bbox_inches='tight')
+    # plt.savefig(img_file, bbox_inches='tight')
     print('File Save: {}' .format(img_file))
     
     plt.show()
@@ -380,24 +380,25 @@ def plot_diff_abs():
 
 
 # ===== GET MODEL ACCURACY =====
-df_rslt = accuracy()
+# df_rslt = accuracy()
 
-r2 = df_rslt['R2'][0]
-rmse = df_rslt['RMSE'][0]
-mape = df_rslt['MAPE'][0]
-f1_score = round(df_rslt['f1_score'][0], 3)
+# r2 = df_rslt['R2'][0]
+# rmse = df_rslt['RMSE'][0]
+# mape = df_rslt['MAPE'][0]
+# f1_score = round(df_rslt['f1_score'][0], 3)
 
-print(df_rslt)
+# print(df_rslt)
 
 
 # ===== DRAW EST MAP PLOT =====
-drawPlot(ex_est)
+# drawPlot(ex_est)
 
 # ===== DRAW DIFF MAP PLOT =====
-df_diff = plot_diff() 
+# df_diff = plot_diff() 
 
 # ===== DRAW DIFF ABS MAP PLOT =====
-df_diff_abs = plot_diff_abs()        
+df_diff_abs = plot_diff_abs()
+df_diff_abs.to_excel('abs_diff_est'+str(EST)+'.xlsx')
     
     
     
