@@ -18,7 +18,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=1, dest='EST')
+parser.add_argument('--EST', type=int, default=5, dest='EST')
 parser.add_argument('--LAT', type=int, default=13, dest='LAT')
 parser.add_argument('--LON', type=int, default=38, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
@@ -32,6 +32,7 @@ LON = args.LON
 LR = args.LR
 IT = args.IT
 VER = str(EST)+'_'+str(LR)+'_'+str(IT)
+save_name = str(EST)+'_'+str(LR)+'_'+str(IT)+'_'+str(LAT)+'_'+str(LON)
 
 # hyper parameter
 YEAR = 365
@@ -258,7 +259,7 @@ def plot_scatter():
     b = ( y.mean() * x.dot(x) - x.mean() * x.dot(y) ) / denominator
     y_pred = m*x + b
     
-    plt.figure(figsize=(15, 15))
+    plt.figure(figsize=(12, 12))
     ax = plt.gca()
         
     plt.rc('font', size=25)
@@ -268,8 +269,8 @@ def plot_scatter():
     
     plt.xlim([5, 30])
     plt.ylim([5, 30])
-    plt.xticks([10,15,20,25,30])
-    plt.yticks([10,15,20,25,30])
+    plt.xticks([10,15,20,25])
+    plt.yticks([10,15,20,25])
     
     plt.scatter(rslt_real, rslt_est, c='red', s=5)
     plt.rcParams['lines.linewidth'] = 1
@@ -288,7 +289,7 @@ def plot_scatter():
     ax.add_artist(textbox)
     
     #### SAVE IMAGE ####
-    img_file = 'scatter_'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.png'
+    img_file = 'scatter_'+save_name+'.png'
     plt.savefig(img_file, bbox_inches='tight')
     print('File Save: {}' .format(img_file))
     
@@ -317,7 +318,7 @@ def plot_timeSeries():
     
     
     #### SAVE IMAGE ####
-    img_file = 'timeSeries_'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.png'
+    img_file = 'timeSeries_'+save_name+'.png'
     plt.savefig(img_file, bbox_inches='tight')
     print('File Save: {}' .format(img_file))
     
@@ -463,10 +464,6 @@ if __name__ == '__main__':
             input_width=30, label_width=30, shift=EST,
             label_columns=['sst'],
             train_df=train_df, val_df=val_df, test_df=test_df)
-
-
-    
-    
     
 
         ds_test = wide_window.test
@@ -482,7 +479,7 @@ if __name__ == '__main__':
     
         est_sst = np.round(rslt_output[0][29][0], 4)
     
-        real_sst = np.round(rslt_label[0][29][0], 4)
+        real_sst = np.round(rslt_label[0][29-EST][0], 4)
     
         print('Est: {} Real: {} ' .format(est_sst, real_sst))
         

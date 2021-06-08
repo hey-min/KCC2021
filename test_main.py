@@ -29,6 +29,17 @@ def train():
         
         cmd = 'python test_model_train.py --EST='+EST+' --LAT='+str(r)+' --LON='+str(c) + ' --LR='+LR+' --IT='+IT
         print(os.system(cmd))
+
+def test():
+    
+    for i in range(len(df)):
+        r = df['LAT'][i]
+        c = df['LON'][i]
+        print(df['LAT'][i], df['LON'][i])
+        
+        cmd = 'python test_model_test.py --EST='+EST+' --LAT='+str(r)+' --LON='+str(c) + ' --LR='+LR+' --IT='+IT
+        print(os.system(cmd))
+        
       
 if __name__ == '__main__':
     
@@ -48,8 +59,11 @@ if __name__ == '__main__':
         EST = str(est)
         
         try:
-            train()
+            # train()
             print('Train Complete')
+            
+            test()
+            print('Test Complete')
     
         except Exception as ex:
             print('Error {}' .format(ex))
