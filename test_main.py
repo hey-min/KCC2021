@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# 2021.06.02
+# 2021.06.09
 
 
 import pickle
@@ -40,19 +40,33 @@ def test():
         cmd = 'python test_model_test.py --EST='+EST+' --LAT='+str(r)+' --LON='+str(c) + ' --LR='+LR+' --IT='+IT
         print(os.system(cmd))
         
+def train_lat_lon():
+    
+    for r in range(len(nc_lat)):
+        for c in range(len(nc_lon)):
+        
+            data = nc_sst[0][r][c]
+            # print(data)
+            if math.isnan(data):
+                # print('-')
+                continue
+            else:
+                cmd = 'python test_model_train.py --EST='+EST+' --LAT='+str(r)+' --LON='+str(c) + ' --LR='+LR+' --IT='+IT
+                print(os.system(cmd))
+
       
 if __name__ == '__main__':
     
  
-    est_list = [1,2,3,4,5]
+    est_list = [1,3,5]
     LR = str(0.001)
     IT = str(500)
     
-    columns = ['LAT', 'LON']
-    df = pd.DataFrame([[13, 38], [14, 39], [30, 28], [27, 33], [17, 22], [18, 23]], columns=columns)
+    # columns = ['LAT', 'LON']
+    # df = pd.DataFrame([[13, 38], [14, 39], [30, 28], [27, 33], [17, 22], [18, 23]], columns=columns)
     
-    for i in range(len(df)):
-        print(df['LAT'][i], df['LON'][i])
+    # for i in range(len(df)):
+    #     print(df['LAT'][i], df['LON'][i])
     
     for est in est_list :
         
@@ -60,10 +74,11 @@ if __name__ == '__main__':
         
         try:
             # train()
+            train_lat_lon()
             print('Train Complete')
             
-            test()
-            print('Test Complete')
+            # test()
+            # print('Test Complete')
     
         except Exception as ex:
             print('Error {}' .format(ex))
