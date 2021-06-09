@@ -380,21 +380,21 @@ def plot_diff_abs():
 
 
 # ===== GET MODEL ACCURACY =====
-# df_rslt = accuracy()
+df_rslt = accuracy()
 
-# r2 = df_rslt['R2'][0]
-# rmse = df_rslt['RMSE'][0]
-# mape = df_rslt['MAPE'][0]
-# f1_score = round(df_rslt['f1_score'][0], 3)
+r2 = df_rslt['R2'][0]
+rmse = df_rslt['RMSE'][0]
+mape = df_rslt['MAPE'][0]
+f1_score = round(df_rslt['f1_score'][0], 3)
 
-# print(df_rslt)
+print(df_rslt)
 
 
 # ===== DRAW EST MAP PLOT =====
-# drawPlot(ex_est)
+drawPlot(ex_est)
 
 # ===== DRAW DIFF MAP PLOT =====
-# df_diff = plot_diff() 
+df_diff = plot_diff() 
 
 # ===== DRAW DIFF ABS MAP PLOT =====
 df_diff_abs = plot_diff_abs()

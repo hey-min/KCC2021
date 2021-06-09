@@ -5,7 +5,7 @@
 import os
 import argparse
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -15,11 +15,11 @@ import pickle
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=1, dest='EST')
-parser.add_argument('--LAT', type=int, default=0, dest='LAT')
-parser.add_argument('--LON', type=int, default=6, dest='LON')
+parser.add_argument('--EST', type=int, default=5, dest='EST')
+parser.add_argument('--LAT', type=int, default=13, dest='LAT')
+parser.add_argument('--LON', type=int, default=38, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
-parser.add_argument('--IT', type=int, default=10, dest='IT')
+parser.add_argument('--IT', type=int, default=500, dest='IT')
 # parser.add_argument('--BATCH', type=int, default=14, dest='BATCH')
 
 args = parser.parse_args()
@@ -41,7 +41,7 @@ def createFolder(dir):
         print(e)
         
         
-model_path = 'model_test/'+VER
+model_path = 'model_test_v2/'+VER
 createFolder(model_path)
 model_name = '['+str(LAT)+']['+str(LON)+']'
 
@@ -174,14 +174,14 @@ class WindowGenerator():
     def plot(self, model=None, plot_col='sst', max_subplots=1):
         
         inputs, labels = self.example
-        # plt.figure(figsize=(12, 8))
+        plt.figure(figsize=(12, 8))
         plot_col_index = self.column_indices[plot_col]
         max_n = min(max_subplots, len(inputs))
         
         for n in range(max_n):
-            # plt.subplot(3, 1, n+1)
-            # plt.ylabel(f'{plot_col}')
-            # plt.plot(self.input_indices, inputs[n, :, plot_col_index], label='Inputs', marker='.', zorder=-10)
+            plt.subplot(3, 1, n+1)
+            plt.ylabel(f'{plot_col}')
+            plt.plot(self.input_indices, inputs[n, :, plot_col_index], label='Inputs', marker='.', zorder=-10)
 
             if self.label_columns:
                 label_col_index = self.label_columns_indices.get(plot_col, None)
@@ -191,26 +191,26 @@ class WindowGenerator():
             if label_col_index is None:
                 continue
 
-            # plt.scatter(self.label_indices, labels[n, :, label_col_index],
-            #     edgecolors='k', label='Labels', c='#2ca02c', s=64)
+            plt.scatter(self.label_indices, labels[n, :, label_col_index],
+                edgecolors='k', label='Labels', c='#2ca02c', s=64)
             
             if model is not None:
 
                 predictions = model(inputs)
                 
-                # plt.scatter(self.label_indices, predictions[n, :],
-                #   marker='X', edgecolors='k', label='Predictions',
-                #   c='#ff7f0e', s=64)
+                plt.scatter(self.label_indices, predictions[n, :],
+                  marker='X', edgecolors='k', label='Predictions',
+                  c='#ff7f0e', s=64)
 
-            # if n == 0:
-            #     plt.legend()
+            if n == 0:
+                plt.legend()
 
-        # plt.xlabel('Time [day]')
+        plt.xlabel('Time [day]')
         
-        data_input = inputs.numpy()
+        data_labels = labels.numpy()
         data_output = predictions.numpy()
         
-        return data_input, data_output
+        return data_labels, data_output
 
 
     def make_dataset(self, data):

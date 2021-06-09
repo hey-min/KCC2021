@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 2021.06.02
+# 2021.06.09
 
 import os
 import argparse
@@ -18,7 +18,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=5, dest='EST')
+parser.add_argument('--EST', type=int, default=3, dest='EST')
 parser.add_argument('--LAT', type=int, default=13, dest='LAT')
 parser.add_argument('--LON', type=int, default=38, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
@@ -159,11 +159,15 @@ class WindowGenerator():
     def plot(self, model=None, plot_col='sst', max_subplots=1):
         
         inputs, labels = self.example
+        # plt.figure(figsize=(12, 8))
         plot_col_index = self.column_indices[plot_col]
         max_n = min(max_subplots, len(inputs))
         
         for n in range(max_n):
-            
+            # plt.subplot(3, 1, n+1)
+            # plt.ylabel(f'{plot_col} [normed]')
+            # plt.plot(self.input_indices, inputs[n, :, plot_col_index],
+             # label='Inputs', marker='.', zorder=-10)
             if self.label_columns:
                 label_col_index = self.label_columns_indices.get(plot_col, None)
             else:
@@ -171,15 +175,26 @@ class WindowGenerator():
 
             if label_col_index is None:
                 continue
-
+            
+            # plt.scatter(self.label_indices, labels[n, :, label_col_index],
+            #     edgecolors='k', label='Labels', c='#2ca02c', s=64)
+            
             if model is not None:
                 predictions = model(inputs)
+                # plt.scatter(self.label_indices, predictions[n, :, label_col_index],
+                #   marker='X', edgecolors='k', label='Predictions',
+                #   c='#ff7f0e', s=64)
 
-
-        data_input = inputs.numpy()
+            # if n == 0:
+                # plt.legend()
+      
+        # plt.xlabel('Time [h]')
+        
+        # (2021.06.09.) rslt_label : 2019/1/1 ~ 2019/12/31
+        data_label = labels.numpy()
         data_output = predictions.numpy()
         
-        return data_input, data_output
+        return data_label, data_output
 
 
     def make_dataset(self, data):
@@ -446,17 +461,16 @@ if __name__ == '__main__':
     train_df = df[0:3653]
     val_df = df[3653:4383]
 
-    rslt_real = []
-    rslt_est = []
+    rslt_real_1 = []
+    rslt_est_1 = []
     
     for i in range(start, end+1):
     
-        LABEL = i
-        END = LABEL - EST
-        START = END - 30 + 1
+        _end = i - EST
+        _start = _end - 30 + 1
     
     
-        test_df = df[START:LABEL+1]
+        test_df = df[_start:i+1]
 
 
 
@@ -469,24 +483,26 @@ if __name__ == '__main__':
         ds_test = wide_window.test
 
         list_test = list(ds_test.as_numpy_iterator())
-
+        
         rslt_input = list_test[0][0]
         rslt_label = list_test[0][1]
 
+        # (2021.06.09.) rslt_label : 2019/1/1 ~ 2019/12/31
+        rslt_label, rslt_output = wide_window.plot(new_model)
 
-        rslt_input, rslt_output = wide_window.plot(new_model)
-
-    
-        est_sst = np.round(rslt_output[0][29][0], 4)
     
         real_sst = np.round(rslt_label[0][29-EST][0], 4)
+        est_sst = np.round(rslt_output[0][29][0], 4)
     
-        print('Est: {} Real: {} ' .format(est_sst, real_sst))
+        # print('Est: {} Real: {} ' .format(est_sst, real_sst))
         
-        rslt_real.append(real_sst)
-        rslt_est.append(est_sst)
+        rslt_real_1.append(real_sst)
+        rslt_est_1.append(est_sst)
 
     
+    rslt_real = rslt_real_1[EST:]
+    rslt_est = rslt_est_1[EST:]
+
     df_rslt = accuracy()
     print(df_rslt)
     

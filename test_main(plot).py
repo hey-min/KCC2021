@@ -10,7 +10,6 @@ from openpyxl import Workbook, load_workbook
 import datetime
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 NAME_PICKLE = '2007to2019.pickle'  
 with open(NAME_PICKLE, 'rb') as f:
@@ -20,13 +19,6 @@ with open(NAME_PICKLE, 'rb') as f:
     nc_time = pickle.load(f)
 
 df = pd.DataFrame()
-
-
-plt.figure(figsize=(12, 12))
-ax = plt.gca()
-        
-plt.rc('font', size=25)
-
     
 def train():
     
@@ -70,11 +62,11 @@ if __name__ == '__main__':
     LR = str(0.001)
     IT = str(500)
     
-    columns = ['LAT', 'LON']
-    df = pd.DataFrame([[13, 38], [14, 39], [30, 28], [27, 33], [17, 22], [18, 23]], columns=columns)
+    # columns = ['LAT', 'LON']
+    # df = pd.DataFrame([[13, 38], [14, 39], [30, 28], [27, 33], [17, 22], [18, 23]], columns=columns)
     
-    for i in range(len(df)):
-        print(df['LAT'][i], df['LON'][i])
+    # for i in range(len(df)):
+    #     print(df['LAT'][i], df['LON'][i])
     
     for est in est_list :
         
@@ -82,11 +74,11 @@ if __name__ == '__main__':
         
         try:
             # train()
-            # train_lat_lon()
-            # print('Train Complete')
+            train_lat_lon()
+            print('Train Complete')
             
-            test()
-            print('Test Complete')
+            # test()
+            # print('Test Complete')
     
         except Exception as ex:
             print('Error {}' .format(ex))
