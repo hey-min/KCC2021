@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
-# 2021.06.09
+# 2021.06.10
 
 
 import os
 import argparse
-
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import pickle
-
+from openpyxl import Workbook, load_workbook
 
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--EST', type=int, default=5, dest='EST')
-parser.add_argument('--LAT', type=int, default=13, dest='LAT')
-parser.add_argument('--LON', type=int, default=38, dest='LON')
+parser.add_argument('--LAT', type=int, default=0, dest='LAT')
+parser.add_argument('--LON', type=int, default=5, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
-# parser.add_argument('--BATCH', type=int, default=14, dest='BATCH')
 
 args = parser.parse_args()
 
@@ -30,7 +29,6 @@ LAT = args.LAT
 LON = args.LON
 LR = args.LR
 IT = args.IT
-# BATCH = args.BATCH
 VER = str(EST)+'_'+str(LR)+'_'+str(IT)
 
 def createFolder(dir):
@@ -40,11 +38,10 @@ def createFolder(dir):
     except Exception as e:
         print(e)
         
-        
-model_path = 'model_test_v2/'+VER
+
+model_path = 'model_month/'+VER
 createFolder(model_path)
 model_name = '['+str(LAT)+']['+str(LON)+']'
-
 
 NAME_PICKLE = '2007to2019.pickle'
    
@@ -60,6 +57,7 @@ def read_pickle():
     
     return nc_sst, nc_lat, nc_lon, nc_time
 
+
 def get_data(lat, lon):
     
     total_size = len(nc_time)
@@ -73,7 +71,6 @@ def get_data(lat, lon):
         df = df.append(pd.Series(df_data, index=df.columns), ignore_index=True)
     
     return df
-
 
 
 
@@ -93,19 +90,13 @@ find_date = '2019-08-10 12:00:00'
 df_date = pd.DataFrame(nc_time, columns={'date'})
 find_index = df_date[df_date['date']==find_date].index.values
 
-###### Index 중요함!!!
+print('\n{} : {}' .format(find_date, find_index))
 
-LABEL = int(find_index)
-END = int(LABEL - EST)
-START = int(END - 30 + 1)
-test_df = df[START:LABEL+1]
+_index = int(find_index)
+_id_end = int(_index - EST)
+_id_start = int(_id_end - 30 + 1)
+test_df = df[_id_start:_index+1]
            
-
-
-
-
-
-
 
 
 
@@ -148,30 +139,29 @@ class WindowGenerator():
 
     def __repr__(self):
         return '\n'.join([
-            f'Total window size: {self.total_window_size}',
-            f'Input indices: {self.input_indices}',
-            f'Label indices: {self.label_indices}',
-            f'Label column name(s): {self.label_columns}'])
+        f'\nTotal window size: {self.total_window_size}',
+        f'Input indices: {self.input_indices}',
+        f'Label indices: {self.label_indices}',
+        f'Label column name(s): {self.label_columns}\n'])
 
-    def split_window(self, features):
 
+
+def split_window(self, features):
+    
+    inputs = features[:, self.input_slice, :]
+    labels = features[:, self.labels_slice, :]
         
-        inputs = features[:, self.input_slice, :]
-        labels = features[:, self.labels_slice, :]
-        
-
-        if self.label_columns is not None:
-            labels = tf.stack(
-                [labels[:, :, self.column_indices[name]] for name in self.label_columns], axis=-1)
+    if self.label_columns is not None:
+        labels = tf.stack([labels[:, :, self.column_indices[name]] for name in self.label_columns], axis=-1)
 
         inputs.set_shape([None, self.input_width, None])
         labels.set_shape([None, self.label_width, None])
         
         return inputs, labels
-
-   
     
-    def plot(self, model=None, plot_col='sst', max_subplots=1):
+WindowGenerator.split_window = split_window
+
+def plot(self, model=None, plot_col='sst', max_subplots=1):
         
         inputs, labels = self.example
         plt.figure(figsize=(12, 8))
@@ -202,8 +192,8 @@ class WindowGenerator():
                   marker='X', edgecolors='k', label='Predictions',
                   c='#ff7f0e', s=64)
 
-            if n == 0:
-                plt.legend()
+            # if n == 0:
+            #     plt.legend()
 
         plt.xlabel('Time [day]')
         
@@ -212,24 +202,26 @@ class WindowGenerator():
         
         return data_labels, data_output
 
+WindowGenerator.plot = plot
 
-    def make_dataset(self, data):
-        
+
+def make_dataset(self, data):
+        # (input_window, label_window)
 
         data = np.array(data, dtype=np.float32)
         ds = tf.keras.preprocessing.timeseries_dataset_from_array(
             data=data,
             targets=None,
             sequence_length=self.total_window_size,
-            sequence_stride=1,
+            sequence_stride=EST,
             shuffle=True,
             batch_size=30,)
 
         ds = ds.map(self.split_window)
       
         return ds
-
-
+WindowGenerator.make_dataset = make_dataset    
+    
 @property
 def train(self):
   print('TRAIN START')
@@ -251,10 +243,11 @@ def example(self):
   result = getattr(self, '_example', None)
   if result is None:
     # No example batch was found, so get one from the `.train` dataset
-    result = next(iter(self.test))
+    result = next(iter(self.train))
     # And cache it for next time
     self._example = result
   return result
+
 
 WindowGenerator.train = train
 WindowGenerator.val = val
@@ -263,7 +256,6 @@ WindowGenerator.example = example
 
 
 
-MAX_EPOCHS = IT
 def compile_and_fit(model, window, patience=2):
   early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                     patience=patience,
@@ -273,53 +265,21 @@ def compile_and_fit(model, window, patience=2):
                 optimizer=tf.optimizers.Adam(lr=LR),
                 metrics=[tf.metrics.MeanAbsoluteError()])
 
-  history = model.fit(window.train, epochs=MAX_EPOCHS,
+  history = model.fit(window.train, epochs=IT,
                       validation_data=window.val,
-                      verbose=2,
+                      verbose=0,
                       callbacks=[early_stopping])
   return history
 
 
-val_performance = {}
-performance = {}
 
-
-
-############# CONV WINDOW #############
-CONV_WIDTH = 30
-conv_window = WindowGenerator(
-    input_width=CONV_WIDTH,
-    label_width=1,
-    shift=EST,
-    label_columns=['sst'])
-
-print('------------------- CONV WINDOW -------------------')
-
-
-############# CONV MODEL #############
-conv_model = tf.keras.Sequential([
-    tf.keras.layers.Conv1D(filters=32,
-                           kernel_size=(CONV_WIDTH,),
-                           activation='relu'),
-    tf.keras.layers.Dense(units=32, activation='relu'),
-    tf.keras.layers.Dense(units=1),
-])
-
-
-
-
-############# WIDE WINDOW #############
 wide_window = WindowGenerator(
     input_width=30, label_width=30, shift=EST,
     label_columns=['sst'])
-print('------------------- WIDE WINDOW -------------------')
+print(wide_window)
 
 
 
-
-
-
-############# LSTM MODEL #############
 lstm_model = tf.keras.models.Sequential([
     # Shape [batch, time, features] => [batch, time, lstm_units]
     tf.keras.layers.LSTM(32, return_sequences=True),
@@ -327,14 +287,22 @@ lstm_model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(units=1)
 ])
 
+print('Input shape:', wide_window.example[0].shape)
+print('Output shape:', lstm_model(wide_window.example[0]).shape)
 
 
 history = compile_and_fit(lstm_model, wide_window)
+    
+wide_window.plot(lstm_model)
 
 
 
 
-########### MODEL SAVE AND LOAD #################
+model_path = 'model/'+VER
+createFolder(model_path)
+model_name = '['+str(LAT)+']['+str(LON)+']'
+
+
 lstm_model.save(model_path+'/'+model_name+'.h5')
 print('Model Save : '+model_path+'/'+model_name+'.h5')
 
@@ -342,3 +310,22 @@ new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
 
 
 
+
+
+print('MODEL:{}' .format(model_path+'/'+model_name+'.h5'))
+new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
+
+ds_test = wide_window.test
+new_model.evaluate(ds_test, verbose=2)
+list_test = list(ds_test.as_numpy_iterator())
+rslt_input = list_test[0][0]
+rslt_label = list_test[0][1]
+
+rslt_label, rslt_output = wide_window.plot(new_model)
+# rslt_df = pd.DataFrame({'index':test_df.index[:30],
+#                             'input': rslt_input.reshape(30),
+#                             'label' : rslt_label.reshape(30),
+#                             'predict':rslt_output.reshape(30)})
+
+    
+# est_sst = rslt_output[0][29]
