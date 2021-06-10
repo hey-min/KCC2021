@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 2021.06.02
+# 2021.06.10
 
 
 import os
@@ -17,7 +17,7 @@ tf.compat.v1.reset_default_graph()
 parser = argparse.ArgumentParser()
 parser.add_argument('--EST', type=int, default=1, dest='EST')
 parser.add_argument('--LAT', type=int, default=0, dest='LAT')
-parser.add_argument('--LON', type=int, default=6, dest='LON')
+parser.add_argument('--LON', type=int, default=5, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=300, dest='IT')
 # parser.add_argument('--BATCH', type=int, default=14, dest='BATCH')
@@ -101,11 +101,6 @@ START = int(END - 30 + 1)
 test_df = df[START:LABEL+1]
            
 
-
-
-
-
-'''
 
 
 
@@ -221,7 +216,7 @@ class WindowGenerator():
             data=data,
             targets=None,
             sequence_length=self.total_window_size,
-            sequence_stride=1,
+            sequence_stride=EST,
             shuffle=True,
             batch_size=30,)
 
@@ -342,4 +337,3 @@ new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
 
 
 
-'''
