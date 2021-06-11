@@ -205,6 +205,8 @@ def plot(self, model=None, plot_col='sst', max_subplots=1):
 WindowGenerator.plot = plot
 
 
+
+
 def make_dataset(self, data):
         # (input_window, label_window)
 
@@ -294,3 +296,38 @@ print('Output shape:', lstm_model(wide_window.example[0]).shape)
 history = compile_and_fit(lstm_model, wide_window)
     
 wide_window.plot(lstm_model)
+
+
+
+
+
+
+
+model_path = 'model/'+VER
+createFolder(model_path)
+model_name = '['+str(LAT)+']['+str(LON)+']'
+
+
+lstm_model.save(model_path+'/'+model_name+'.h5')
+print('Model Save : '+model_path+'/'+model_name+'.h5')
+
+new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
+
+
+
+
+
+print('MODEL:{}' .format(model_path+'/'+model_name+'.h5'))
+new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
+
+ds_test = wide_window.test
+new_model.evaluate(ds_test, verbose=2)
+list_test = list(ds_test.as_numpy_iterator())
+
+rslt_input = list_test[0][0]
+rslt_label = list_test[0][1]
+
+
+# !! plot function에서 input, label이 self.example로 되어있는데 이 부분 수정필요함
+
+# rslt_label, rslt_output = wide_window.plot(new_model)
