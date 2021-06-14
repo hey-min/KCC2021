@@ -51,7 +51,7 @@ def train_lat_lon():
                 # print('-')
                 continue
             else:
-                cmd = 'python test_model_train.py --EST='+EST+' --LAT='+str(r)+' --LON='+str(c) + ' --LR='+LR+' --IT='+IT
+                cmd = 'python test_model_month.py --EST='+EST+' --LAT='+str(r)+' --LON='+str(c) + ' --LR='+LR+' --IT='+IT
                 print(os.system(cmd))
 
       

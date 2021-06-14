@@ -15,7 +15,7 @@ from openpyxl import Workbook, load_workbook
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=5, dest='EST')
+parser.add_argument('--EST', type=int, default=1, dest='EST')
 parser.add_argument('--LAT', type=int, default=0, dest='LAT')
 parser.add_argument('--LON', type=int, default=5, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
@@ -86,16 +86,17 @@ n = len(df)
 train_df = df[0:3653]
 val_df = df[3653:4383]
 
-find_date = '2019-08-10 12:00:00'
-df_date = pd.DataFrame(nc_time, columns={'date'})
-find_index = df_date[df_date['date']==find_date].index.values
+# find_date = '2019-08-10 12:00:00'
+# df_date = pd.DataFrame(nc_time, columns={'date'})
+# find_index = df_date[df_date['date']==find_date].index.values
 
-print('\n{} : {}' .format(find_date, find_index))
+# print('\n{} : {}' .format(find_date, find_index))
 
-_index = int(find_index)
-_id_end = int(_index - EST)
-_id_start = int(_id_end - 30 + 1)
-test_df = df[_id_start:_index+1]
+# _index = int(find_index)
+# _id_end = int(_index - EST)
+# _id_start = int(_id_end - 30 + 1)
+# test_df = df[_id_start:_index+1]
+test_df = df[4383:]
            
 
 
@@ -162,45 +163,42 @@ def split_window(self, features):
 WindowGenerator.split_window = split_window
 
 def plot(self, model=None, plot_col='sst', max_subplots=1):
+    
+    inputs, labels = self.example
+    # plt.figure(figsize=(12, 8))
+    plot_col_index = self.column_indices[plot_col]
+    max_n = min(max_subplots, len(inputs))
+    for n in range(max_n):
+        # plt.subplot(3, 1, n+1)
+        # plt.ylabel(f'{plot_col} [normed]')
+        # plt.plot(self.input_indices, inputs[n, :, plot_col_index],
+        #      label='Inputs', marker='.', zorder=-10)
+
+        if self.label_columns:
+            label_col_index = self.label_columns_indices.get(plot_col, None)
+        else:
+            label_col_index = plot_col_index
+
+        if label_col_index is None:
+            continue
+
+        # plt.scatter(self.label_indices, labels[n, :, label_col_index],
+        #         edgecolors='k', label='Labels', c='#2ca02c', s=64)
+        if model is not None:
+            predictions = model(inputs)
+            # plt.scatter(self.label_indices, predictions[n, :, label_col_index],
+            #       marker='X', edgecolors='k', label='Predictions',
+            #       c='#ff7f0e', s=64)
+
+        # if n == 0:
+        #     plt.legend()
+
+    # plt.xlabel('Time [h]')
+    
+    data_labels = labels.numpy()
+    data_output = predictions.numpy()
         
-        inputs, labels = self.example
-        plt.figure(figsize=(12, 8))
-        plot_col_index = self.column_indices[plot_col]
-        max_n = min(max_subplots, len(inputs))
-        
-        for n in range(max_n):
-            plt.subplot(3, 1, n+1)
-            plt.ylabel(f'{plot_col}')
-            plt.plot(self.input_indices, inputs[n, :, plot_col_index], label='Inputs', marker='.', zorder=-10)
-
-            if self.label_columns:
-                label_col_index = self.label_columns_indices.get(plot_col, None)
-            else:
-                label_col_index = plot_col_index
-
-            if label_col_index is None:
-                continue
-
-            plt.scatter(self.label_indices, labels[n, :, label_col_index],
-                edgecolors='k', label='Labels', c='#2ca02c', s=64)
-            
-            if model is not None:
-
-                predictions = model(inputs)
-                
-                plt.scatter(self.label_indices, predictions[n, :],
-                  marker='X', edgecolors='k', label='Predictions',
-                  c='#ff7f0e', s=64)
-
-            # if n == 0:
-            #     plt.legend()
-
-        plt.xlabel('Time [day]')
-        
-        data_labels = labels.numpy()
-        data_output = predictions.numpy()
-        
-        return data_labels, data_output
+    return data_labels, data_output
 
 WindowGenerator.plot = plot
 
@@ -248,11 +246,23 @@ def example(self):
     self._example = result
   return result
 
+@property
+def example_test(self):
+  """Get and cache an example batch of `inputs, labels` for plotting."""
+  result = getattr(self, '_example_test', None)
+  if result is None:
+    # No example batch was found, so get one from the `.test` dataset
+    result = next(iter(self.test))
+    # And cache it for next time
+    self._example_test = result
+  return result
+
 
 WindowGenerator.train = train
 WindowGenerator.val = val
 WindowGenerator.test = test
 WindowGenerator.example = example
+WindowGenerator.example_test = example_test
 
 
 
@@ -297,35 +307,46 @@ wide_window.plot(lstm_model)
 
 
 
-
-model_path = 'model/'+VER
-createFolder(model_path)
-model_name = '['+str(LAT)+']['+str(LON)+']'
-
+# ========== MODEL SAVE AND LOAD ============
 
 lstm_model.save(model_path+'/'+model_name+'.h5')
 print('Model Save : '+model_path+'/'+model_name+'.h5')
 
-new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
+# new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
+
+
+
+# print('MODEL:{}' .format(model_path+'/'+model_name+'.h5'))
+# new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
+
+# ds_test = wide_window.test
+# new_model.evaluate(ds_test, verbose=2)
+# list_test = list(ds_test.as_numpy_iterator())
+# rslt_input = list_test[0][0]
+# rslt_label = list_test[0][1]
+
+        
+# rslt_label, rslt_output = wide_window.plot(new_model)
+
+# ============== LSTM MODEL PREDICT AND DRAW PLOT ==============
+# inputs, labels = wide_window.example_test
+# plt.figure(figsize=(12, 8))
+# plt.subplot(3, 1, 1)
+# plot_col_index = wide_window.column_indices['sst']
+# plt.title('Model Test Results')
+# plt.ylabel('sst')
+# plt.plot(wide_window.input_indices, inputs[0, :, 0], label='Inputs', marker='.', zorder=-10)
+# plt.scatter(wide_window.label_indices, labels[0, :, 0], edgecolors='k', label='Labels', c='#2ca02c', s=64)
+# predictions = new_model(labels)
+# plt.scatter(wide_window.label_indices, predictions[0, :, 0], marker='X', edgecolors='k', label='Predictions', c='#ff7f0e', s=64)
+# plt.legend()
+# plt.xlabel('Time [h]')
+
+# predictions_numpy = predictions.numpy()
+# rslt = predictions_numpy[0,29,0]
+# diff = labels.numpy()-predictions.numpy()
+# print(diff[0,29,0])
 
 
 
 
-
-print('MODEL:{}' .format(model_path+'/'+model_name+'.h5'))
-new_model = tf.keras.models.load_model(model_path+'/'+model_name+'.h5')
-
-ds_test = wide_window.test
-new_model.evaluate(ds_test, verbose=2)
-list_test = list(ds_test.as_numpy_iterator())
-rslt_input = list_test[0][0]
-rslt_label = list_test[0][1]
-
-rslt_label, rslt_output = wide_window.plot(new_model)
-# rslt_df = pd.DataFrame({'index':test_df.index[:30],
-#                             'input': rslt_input.reshape(30),
-#                             'label' : rslt_label.reshape(30),
-#                             'predict':rslt_output.reshape(30)})
-
-    
-# est_sst = rslt_output[0][29]
