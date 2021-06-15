@@ -19,8 +19,8 @@ from openpyxl import Workbook, load_workbook
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=1, dest='EST')
-parser.add_argument('--LR', type=float, default=0.0005, dest='LR')
+parser.add_argument('--EST', type=int, default=3, dest='EST')
+parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
 # parser.add_argument('--BATCH', type=int, default=14, dest='BATCH')
 args = parser.parse_args()
@@ -255,7 +255,7 @@ def ValTest(r, c):
     train_df = df[0:3653]
     val_df = df[3653:4383]
 
-    find_date = '2019-08-10 12:00:00'
+    find_date = '2019-02-10 12:00:00'
     df_date = pd.DataFrame(nc_time, columns={'date'})
     find_index = df_date[df_date['date']==find_date].index.values
     
@@ -331,24 +331,28 @@ def ValTest(r, c):
 
     
     est_sst = rslt_output[0][29]
+    real_sst = rslt_label[0][29]
     
     
-    
-    return est_sst
+    return real_sst, est_sst
 
 if __name__ == '__main__':
     
     nc_sst, nc_lat, nc_lon, nc_time = read_pickle()
     
-    excel = 'excel/EST'+VER+'.xlsx'
+    excel_est = 'excel/20190210/EST'+VER+'.xlsx'
+    excel_real = 'excel/20190210/real.xlsx'
     
     version = 0
-    while os.path.isfile(excel):
+    while os.path.isfile(excel_est):
         version = version + 1
-        excel = 'excel/EST'+VER+'_v'+str(version)+'.xlsx'
+        excel_est = 'excel/20190210/EST'+VER+'_v'+str(version)+'.xlsx'
     
     wb = Workbook()
     ws = wb.active
+    
+    wb_real = Workbook()
+    ws_real = wb_real.active
          
     for r in range(len(nc_lat)):
         for c in range(len(nc_lon)):
@@ -359,15 +363,21 @@ if __name__ == '__main__':
                 continue
             
             else:
-                est = ValTest(r, c)
-                rslt = round(est[0], 3)
-                print('Est: {}' .format(rslt))
+                real, est = ValTest(r, c)
                 
-                ws.cell(r+1, c+1, rslt)
+                est = round(est[0], 3)
+                real = round(real[0], 3)
+                print('Real: {} Est: {}' .format(real, est))
+                
+                ws.cell(r+1, c+1, est)
+                ws_real.cell(r+1, c+1, real)
     
     ws.insert_rows(1)
-    wb.save(excel)
+    ws_real.insert_rows(1)
+    wb.save(excel_est)
+    wb_real.save(excel_real)
     wb.close()
+    wb_real.close()
 
 
 

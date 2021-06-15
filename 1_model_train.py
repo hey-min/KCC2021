@@ -15,11 +15,11 @@ import pickle
 tf.compat.v1.reset_default_graph()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=1, dest='EST')
+parser.add_argument('--EST', type=int, default=5, dest='EST')
 parser.add_argument('--LAT', type=int, default=0, dest='LAT')
 parser.add_argument('--LON', type=int, default=5, dest='LON')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
-parser.add_argument('--IT', type=int, default=300, dest='IT')
+parser.add_argument('--IT', type=int, default=500, dest='IT')
 # parser.add_argument('--BATCH', type=int, default=14, dest='BATCH')
 
 args = parser.parse_args()

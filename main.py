@@ -36,9 +36,9 @@ def train():
 if __name__ == '__main__':
     
  
-    est_list = [3]
-    LR = str(0.0001)
-    IT = str(10000)
+    est_list = [5]
+    LR = str(0.001)
+    IT = str(500)
     
     for est in est_list :
         
@@ -56,7 +56,7 @@ if __name__ == '__main__':
             # create predict sst excel file by using created h5 model file
             cmd = 'python 2_model_val_test.py --EST='+EST+' --LR='+LR+' --IT='+IT
             print(cmd)
-            print(os.system(cmd))
+            # print(os.system(cmd))
             
             # 3. output : accuracy test results [r2, rmse, mape, f1 score, TPR, FPR]
             # calculate model accuracy test by using created excel file

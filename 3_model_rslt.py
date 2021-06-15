@@ -13,7 +13,7 @@ import matplotlib.offsetbox as offsetbox
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import argparse
-
+import math
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings(action='ignore')
@@ -26,7 +26,7 @@ PICKLE = '2007to2019.pickle'
 # ===== Hyper parameter =====
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--EST', type=int, default=1, dest='EST')
+parser.add_argument('--EST', type=int, default=5, dest='EST')
 parser.add_argument('--LR', type=float, default=0.001, dest='LR')
 parser.add_argument('--IT', type=int, default=500, dest='IT')
 args = parser.parse_args()
@@ -53,8 +53,8 @@ def checkFile(file_list):
 
 # ===== EXCEL FILE : EST AND REAL =====
 # ===== CHECK EXCEL FILE
-ex_est = 'excel/EST'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.xlsx'
-ex_real= 'excel/real.xlsx'
+ex_est = 'excel/20190810/EST'+str(EST)+'_'+str(LR)+'_'+str(IT)+'.xlsx'
+ex_real= 'excel/20190810/real.xlsx'
 
 ex_list = [ex_est, ex_real]
 checkFile(ex_list)
@@ -63,7 +63,9 @@ df_real = pd.read_excel(ex_real).stack().values.tolist()
 df_est = pd.read_excel(ex_est).stack().values.tolist()    
 # est = pd.read_excel(excel_name, sheet_name='Sheet', header=None, index_col=None)
 # est = est.drop([0])        
-        
+ 
+sst_min = int(min(df_real))
+sst_max = int(max(df_real))   
 
 # ===== READ PICKLE =====
 PICKLE = '2007to2019.pickle'
@@ -89,10 +91,10 @@ def drawPlot(ex_data):
 
     plt.rc('font', size=25)
     
-    title = 'Map for 10 Aug 2019 12:00'
+    title = 'Map for 10 Feb 2019 12:00'
     plt.title(title, fontdict={'fontsize':30}, loc='left', pad=20)
     
-    plt.title(str(ex_data), loc='right', pad=20)
+    plt.title(str(ex_data), fontdict={'fontsize':20}, loc='right', pad=20)
     map = Basemap(projection='merc', resolution='h', 
                   urcrnrlat=np.nanmax(nc_lat)+0.125, llcrnrlat=np.nanmin(nc_lat)-0.125,
                   urcrnrlon=np.nanmax(nc_lon)+0.125, llcrnrlon=np.nanmin(nc_lon)-0.125)
@@ -112,8 +114,12 @@ def drawPlot(ex_data):
     
     
     text = 'R$^2$: '+str(r2)+'  RMSE: '+str(rmse)+'  MAPE: '+str(mape)
-    text2 = 'F1 Score: ' + str(f1_score)
-    text_rslt = text + '\n' + text2
+    
+    if 'Aug' in text:
+        text2 = 'F1 Score: ' + str(f1_score)
+        text_rslt = text + '\n' + text2
+    
+    text_rslt = text
     
     textbox = offsetbox.AnchoredText(text_rslt, loc='upper left')
     ax.add_artist(textbox)
@@ -124,9 +130,10 @@ def drawPlot(ex_data):
         
     cmap = plt.get_cmap('coolwarm')
     img = map.pcolormesh(x, y, df, cmap=cmap, shading='gouraud')
-    img.set_clim(vmin=20, vmax=30)
+    img.set_clim(vmin=sst_min, vmax=sst_max)
     
-    levels = np.arange(20, 31, 1)
+    # step = (sst_max-sst_min+1) / 10
+    levels = np.arange(sst_min, sst_max+1, 2, dtype='int')
     
     divider = make_axes_locatable(ax)
     cax = divider.append_axes('right', size='3%', pad=0.2)
@@ -186,6 +193,7 @@ def accuracy():
     
     df_ac = pd.DataFrame(data_ac, index=data_ac['EST'])
     
+    
     # TP, FP, FN, TN
     TP = 0
     FP = 0
@@ -201,7 +209,9 @@ def accuracy():
             FN = FN + 1
         if y_true[i] < 28 and y_pred[i] < 28:
             TN = TN + 1
-
+    
+    
+        
 
     # precision, recall, accuracy, f1 score
     TPR = 0
@@ -210,18 +220,19 @@ def accuracy():
     Recall = 0
     F1 = 0
     Accuracy = 0
-
-    for i in range(len(df_real)):
+    
+    if TP!=0:
+        for i in range(len(df_real)):
         
-        TPR = TP / (TP+FN)
-        FPR = FP / (FP+TN)
+            TPR = TP / (TP+FN)
+            FPR = FP / (FP+TN)
         
-        Precision = TP / (TP+FP)
-        Recall = TP / (TP+FN)
-        F1 = 2*(Precision * Recall) / (Precision + Recall)
-        Accuracy = (TP + TN) / (TP + FN + FP + TN)
+            Precision = TP / (TP+FP)
+            Recall = TP / (TP+FN)
+            F1 = 2*(Precision * Recall) / (Precision + Recall)
+            Accuracy = (TP + TN) / (TP + FN + FP + TN)
 
-
+    
     columns = ['EST', 'accuracy', 'recall', 'precision', 'f1_score', 'TPR', 'FPR']
 
     data_hwt = {'EST':[EST], 'accuracy':[round(Accuracy,2)],
@@ -261,10 +272,10 @@ def plot_diff():
         
     plt.rc('font', size=25)
         
-    title = 'Error Map for 10 Aug 2019 12:00'
+    title = 'Error Map for 10 Feb 2019 12:00'
     plt.title(title, fontdict={'fontsize':30}, loc='left', pad=20)
     
-    plt.title(str(ex_est), loc='right', pad=20)
+    plt.title(str(ex_est), fontdict={'fontsize':20}, loc='right', pad=20)
     map = Basemap(projection='merc', resolution='h', 
                   urcrnrlat=np.nanmax(nc_lat)+0.125, llcrnrlat=np.nanmin(nc_lat)-0.125,
                   urcrnrlon=np.nanmax(nc_lon)+0.125, llcrnrlon=np.nanmin(nc_lon)-0.125)
@@ -329,10 +340,10 @@ def plot_diff_abs():
         
     plt.rc('font', size=25)
         
-    title = 'Positive Error Map for 10 Aug 2019 12:00'
+    title = 'Positive Error Map for 10 Feb 2019 12:00'
     plt.title(title, fontdict={'fontsize':30}, loc='left', pad=20)
     
-    plt.title(str(ex_est), loc='right', pad=20)
+    plt.title(str(ex_est), fontdict={'fontsize':20}, loc='right', pad=20)
     map = Basemap(projection='merc', resolution='h', 
                   urcrnrlat=np.nanmax(nc_lat)+0.125, llcrnrlat=np.nanmin(nc_lat)-0.125,
                   urcrnrlon=np.nanmax(nc_lon)+0.125, llcrnrlon=np.nanmin(nc_lon)-0.125)
