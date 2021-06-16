@@ -17,33 +17,120 @@ def checkFile(file_list):
         except IOError:
             print(file + ' is not exist')
 
-days = np.arange(1,6,1)
+days = [0, 1, 2]
+
+        
+    
+df_columns = ['date', 'est-1', 'est-3', 'est-5']
+
+df = pd.DataFrame([['2018-02-10', [0.9958, 0.32, 7.43],[0.9895, 0.51, 11.36],[0.9851, 0.61, 18.74]],
+                   ['2018-08-10', [0.8826, 0.48, 1.35],[0.7257, 0.74, 2.17], [0.5813, 0.95, 2.81]],
+                  ['2018-09-01', [0.9315, 0.31, 0.94],[0.8728, 0.42, 1.33], [0.9315, 0.62, 1.8]]],columns=df_columns)  
+
+
+# ============= R2 =================
+plt.figure(figsize=(6, 4))
+plt.rc('font', size=10)
+plt.ylim(0.3, 1.4)
+plt.xticks(np.arange(0, 3, 1), labels=['est-1', 'est-3', 'est-5'])
+plt.yticks(np.arange(0.4, 1.4, 0.4))
+
+for i in range(len(df)):
+    
+    data_of_date = df.loc[i].date
+    data_of_1 = df.loc[i]['est-1'][0]
+    data_of_3 = df.loc[i]['est-3'][0]
+    data_of_5 = df.loc[i]['est-5'][0]
+    
+    data = [data_of_1, data_of_3, data_of_5]
+    
+    print(data)
+    
+    plt.plot(days, np.array(data), 'o-', label=data_of_date)
+
+plt.legend()
+plt.xlabel('Prediction interval (days)')
+plt.title('Comparison of R$^2$')
+        
+plt.show()
+
+# ============= RMSE =================
+plt.figure(figsize=(6, 4))
+plt.rc('font', size=10)
+plt.ylim(0, 1.2)
+plt.xticks(np.arange(0, 3, 1), labels=['est-1', 'est-3', 'est-5'])
+plt.yticks(np.arange(0.2, 1.2, 0.2))
+
+for i in range(len(df)):
+    
+    data_of_date = df.loc[i].date
+    data_of_1 = df.loc[i]['est-1'][1]
+    data_of_3 = df.loc[i]['est-3'][1]
+    data_of_5 = df.loc[i]['est-5'][1]
+    
+    data = [data_of_1, data_of_3, data_of_5]
+    
+    print(data)
+    
+    plt.plot(days, np.array(data), '*-', label=data_of_date)
+
+plt.legend()
+plt.xlabel('Prediction interval (days)')
+plt.title('Comparison of RMSE')
+        
+plt.show()
+
+
+# ============= MAPE =================
+plt.figure(figsize=(6, 4))
+plt.rc('font', size=10)
+plt.ylim(-5, 21)
+plt.xticks(np.arange(0, 3, 1), labels=['est-1', 'est-3', 'est-5'])
+plt.yticks(np.arange(1, 20, 5))
+
+for i in range(len(df)):
+    
+    data_of_date = df.loc[i].date
+    data_of_1 = df.loc[i]['est-1'][2]
+    data_of_3 = df.loc[i]['est-3'][2]
+    data_of_5 = df.loc[i]['est-5'][2]
+    
+    data = [data_of_1, data_of_3, data_of_5]
+    
+    print(data)
+    
+    plt.plot(days, np.array(data), '^-', label=data_of_date)
+
+plt.legend()
+plt.xlabel('Prediction interval (days)')
+plt.title('Comparison of MAPE')
+        
+plt.show()
+
+
+
+
 
 # Time Series Graph
-sst_list = []
-ex_list = []
-for i in range(1,6):
-    ex_est = 'excel/EST'+str(i)+'_'+str(0.001)+'_'+str(500)+'.xlsx'
-    ex_list.append(ex_est)
+# sst_list = []
+# ex_list = []
+# for i in range(1,6):
+#     ex_est = 'excel/EST'+str(i)+'_'+str(0.001)+'_'+str(500)+'.xlsx'
+#     ex_list.append(ex_est)
 
-checkFile(ex_list)
+# checkFile(ex_list)
 
-df_real = pd.read_excel('excel/real.xlsx')
-LAT, LON = 13, 38
-print(df_real.loc[LAT][LON])
-for i in range(len(ex_list)):
+# df_real = pd.read_excel('excel/real.xlsx')
+# LAT, LON = 13, 38
+# print(df_real.loc[LAT][LON])
+# for i in range(len(ex_list)):
     
-    file = ex_list[i]
-    df = pd.read_excel(file)
-    data = df.loc[LAT][LON]
+#     file = ex_list[i]
+#     df = pd.read_excel(file)
+#     data = df.loc[LAT][LON]
     
-    print(file+': '+str(data))
-    sst_list.append(data)
-     
-    
-    
-    
-    
+#     print(file+': '+str(data))
+#     sst_list.append(data)
 
 '''
 
@@ -132,5 +219,4 @@ plt.xlabel('FPR')
 plt.ylabel('TPR')
     
 plt.show()
-
 '''
